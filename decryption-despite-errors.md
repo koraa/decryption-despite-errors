@@ -5,7 +5,7 @@ Definitions of and fundamental limits of security under these constraints are pr
 Security against fuzzing is formalized.
 The outline of a construction that operates as a mode for a pseudo random function is presented; the construction is based on multiple rounds of an error correcting code and interleaver, both randomized using the PRF generated key stream.
 
-This paper is currently very much a draft. It has not been peer reviewed and I  — the author — may decide that some parts are flat out wrong. MUMBLE MUMBLE indicates references and content to be filled in. Proofs of security and correctness are TBD. For now the constructions have informal arguments of security/correctness.
+This paper is currently very much a draft. It has not been peer reviewed and I  — the author — may decide that some parts are flat out wrong. MUMBLE MUMBLE indicates references and content to be filled in. Proofs of security and correctness are TBD. For now, the constructions have informal arguments of security/correctness.
 
 # Introduction
 
@@ -13,9 +13,9 @@ This paper is currently very much a draft. It has not been peer reviewed and I  
 
 All physical channels are nosy, meaning that the rate of transmission errors can be reduced, but never to zero. Reducing the noise level to the degree required for most applications by increasing the reliability of the physical system is often impractical, as is usually the case with transmissions over radio. There is a better way to deal with this: Forward Error Correction — codes designed to detect and correct errors in return for extra overhead. These codes usually make many assumptions about the distribution of errors in the channel and yield much reduced error correction rates when these assumptions fail to be met. E.g., convolutional codes [citation needed, probably wrong, replace example] operate at much greater efficiencies when the errors are randomly distributed while Reed-Solomon codes are most efficient against bursts [citation needed, probably wrong]. Convolutional codes also suffer from error floor problems, operating at reduced efficiency when MUMBLE MUMBLE MUMBLE [citation needed, mumbled]. Interleaving schemes are used to combine such codes, yielding codes that correct errors reliably in a greater range of scenarios. E.g. CDs use a complex scheme of interleaved Reed-Solomon codes and MUMBLE MUMBLE to correct errors, see a description in [citation needed].
 
-Cryptographic systems are usually layered on top of these error corrected channels to protect the integrity of the data. Modern authenticated encryption schemes protect the integrity and privacy [citation needed] of the data transmitted even against very dedicated adversaries with large resources. Data protected with these schemes either arrives as sent by the communication partner or it arrives not at all with absolutely overwhelming probability. Authenticated encryption schemes usually represents the strongest part of any communications system. Note that while authenticated encryption guarantees authenticity, integrity and privacy of the data transmitted it explicitly does not provide reliability of the transmission. In fact, it makes denial of services significantly easier because AE ensures as a property that a minimum number of modifications to the cipher text suffices to ensure the message is rejected. One bit flip, erasure or insertion suffices to have the message rejected. This is a necessity to achieve security under an adaptive chosen cipher text attack [citation needed] — the common definition provided by most security protocols today.
+Cryptographic systems are usually layered on top of these error corrected channels to protect the integrity of the data. Modern authenticated encryption schemes protect the integrity and privacy [citation needed] of the data transmitted, even against very dedicated adversaries with large resources. Data protected with these schemes either arrives as sent by the communication partner or it does not arrive at all, with absolutely overwhelming probability. Authenticated encryption schemes usually represents the strongest part of any communications system. Note that while authenticated encryption guarantees authenticity, integrity, and privacy of the data transmitted, it explicitly does not provide reliability of the transmission. In fact, it makes denial of services significantly easier because AE ensures as a property that a minimum number of modifications to the cipher text suffices to ensure the message is rejected. One bit flip, erasure, or insertion suffices to have the message rejected. This is a necessity to achieve security under an adaptive chosen cipher text attack [citation needed] — the common definition provided by most security protocols today.
 
-The forward error correction employed on communication channels improve that situation but being designed for very specific noise profiles, finding some error pattern that has the message rejected is usually very easy for a determined adversary. The practical implications of that situation are limited: Fuzzing of radio transmissions can usually be addressed by intervention teams by disabling the fuzzer; most transmissions are secured physically, and data rates are large enough that a few packets lost do not make a big difference.
+The forward error correction employed on communication channels improve that situation but being designed for very specific noise profiles, finding some error pattern that has the message rejected is easy for a determined adversary. The practical implications of that situation are limited: Fuzzing of radio transmissions can usually be addressed by intervention teams by disabling the fuzzer; most transmissions are secured physically, and data rates are large enough that a few packets lost do not make a big difference.
 
 Still, improving the reliability of error correction in data transmissions has significant potential to improve transmission efficiencies and reliability, especially in niche use cases like long range radio transmission, spacecraft.
 
@@ -23,11 +23,11 @@ Still, improving the reliability of error correction in data transmissions has s
 
 ### Approximate Message Authentication
 
-A limited amount of prior work exists on the problem of cryptographically securing error correction and error resilience in cryptographic protocols. Excellent papers have been written on the problem of Approximate Message Authentication codes; see MUMBLE MUMBLE [citation needed] for a relatively recent work with good references. These are extensions of message authentication codes: While a valid MAC implies with overwhelming probability that the tag was generated from the exactly same message as is being verified, AMACs extend this to messages with a certain constant distance from each other. AMACs still output a hard decision in general; for the schemes presented in this paper more precise information about the distance between plain text and plain text with errors would be desired.
+A limited amount of prior work exists on the problem of cryptographically securing error correction and error resilience in cryptographic protocols. Excellent papers have been written on the problem of Approximate Message Authentication codes; see MUMBLE MUMBLE [citation needed] for a relatively recent work with good references. These are extensions of message authentication codes: While a valid MAC implies with overwhelming probability that the tag was generated from the exactly same message as is being verified, AMACs extend this to messages with a certain constant distance from each other. AMACs still output a hard decision in general; for the schemes presented in this paper, more precise information about the distance between plain text and plain text with errors would be desired.
 
 ### Existing hybrid FEC and symmetric crypto schemes
 
-There has also been some work on producing hybrid ciphers integrating error correction and block ciphers, most recently MUMBLE MUMBLE [citation needed] producing what the call MUMBLE MUMBLE. I know of no attacks against this most recent works, but earlier constructions employing FEC to achieve security have been proven insecure. The work referenced here is a from scratch construction of a pseudo random permutation and therefore unfortunately hard to prove as secure. This is not uncommon in PRPs and also the case for very widely used constructions [citation needed], however since this is a fairly niche application cryptanalysis is likely to focus on one of these more widely used constructions. Confidence in this specific scheme is therefore limited.
+There has also been some work on producing hybrid ciphers integrating error correction and block ciphers, most recently MUMBLE MUMBLE [citation needed] producing what the call MUMBLE MUMBLE. I know of no attacks against this most recent works, but earlier constructions employing FEC to achieve security have been proven insecure. The work referenced here is a from scratch construction of a pseudo random permutation, and therefore unfortunately hard to prove as secure. This is not uncommon in PRPs and also the case for very widely used constructions [citation needed], however since this is a fairly niche application cryptanalysis is likely to focus on one of these more widely used constructions. Confidence in this specific scheme is therefore limited.
 
 ## Contributions in this paper
 
@@ -35,9 +35,10 @@ This paper focuses primarily on two properties:
 
 **Security Against Fuzzing (short FEC-security):** Authenticated encryption schemes with this property ensure, that given a limited maximum number of bit flips, finding some error pattern in the cipher text that maximizes the number of bit flips in the plain text is computationally hard. Basically, this formalizes the security of the forward error correction and provides error correction even in the presence of a determined adversary trying to jam message transmission with minimal effort. It also ensures that as long as some information can be transmitted, there exists some redundancy parameter for the cipher that will extract the message being transmitted successfully (although trying this in the real world might be entirely impractical).
 
-**Partial Message Recovery (short PMR):** Authenticated encryption schemes that allow the decryption of a cipher text even if the original message cannot be recovered. As such schemes are by their very nature malleable schemes, analysis will focus on what standard notions of security can be achieved, what new notions of security can be introduced in this setting and how these relate to standard notions. The practical use cases for schemes with that property is increasing transmission efficiency if the data being transmitted has some inherent redundancy (e.g., media streaming). The idea is that especially in real-time streaming scenarios a dropped package can result in quite noticeable, intense artifacts in the transmitted media so an exceedingly high redundancy level must be chosen such that the effective error rate is just one error every couple of packages because this will immediately cause a package to be dropped. With DDE a much lower redundancy level could be chosen such that the effective error rate is closer to a few per packet because these could still be successfully decrypted.
+**Partial Message Recovery (short PMR):** Authenticated encryption schemes that allow the decryption of a cipher text even if the original message cannot be recovered. As such schemes are by their very nature malleable schemes, analysis will focus on what standard notions of security can be achieved, what new notions of security can be introduced in this setting and how these relate to standard notions. The practical use cases for schemes with that property is increasing transmission efficiency if the data being transmitted has some inherent redundancy (e.g., media streaming). The idea is this:
+A dropped package will generally result in big artifacts; a small number of bit flips on the other hand are barely noticeable. Right now, the redundancy level has to be chosen such that a single bit flip occurs on average just every couple of messages to avoid packet loss. With DDE, a much lower redundancy level could be chosen such that the effective error rate is closer to a few per packet because these could still be successfully decrypted.
 
-Formal security games modeling both properties are given as well as an analysis of the maximum achievable security for each property are given. **DDE** is incompatible with full **CCA2** security (for a proof see section MUMBLE MUMBLE) so a formalization of **CCA2** security "up to" some proposition is presented that can encapsulate what is achievable with **DDE** is presented. **FEC-security** is compatible with **CCA2** (for a proof see section MUMBLE MUMBLE).
+Formal security games modeling both properties are given as well as an analysis of the maximum achievable security for each property are given. **PMR** is incompatible with full **CCA2** security, so a formalization of **CCA2** security "up to" some proposition is presented that can encapsulate what is achievable with **DDE** is presented. **FEC-security** is compatible with **CCA2**.
 
 Schemes conjectured to possess these properties are presented.
 
@@ -100,7 +101,7 @@ The paper also discusses the case of standard authenticated definitions with add
 
                           DDE-CCA1 $\iff$ ... Speak "decryption despite errors under CCA2 attack".
 
-                                  fec-NM-CCA1 Speak "forward error correction non malleability under CCA1 attack". Formalization of security against fuzzing.A
+                                  fec-NM-CCA1 Speak "forward error correction non malleability under CCA1 attack". Formalization of security against fuzzing.
 
                                   fec-NM-CCA2 Speak "forward error correction non malleability under CCA2 attack". Formalization of security against fuzzing.
 
@@ -113,11 +114,11 @@ The paper also discusses the case of standard authenticated definitions with add
                                    le-NM-CCA2 Speak "loss estimate non malleability under CCA2 attack". Formalization of the loss estimate security.
   ------------------------------------------- -----------------------------------------------------------------------------------------------------
   
-fec+CCA2 $\iff$ fec-NM-CCA2 $\land$ IND-CCA2
+fec+CCA2 $\iff$ fec-NM-CCA2 $\land$ IND-CCA2.
 
-DDE-CCA2 $\iff$ IND-CCA1 $\land$ NM-CCA1 $\land$ pl-IND-CCA2 $\land$ pl-NM-CCA2 $\land$ le-NM-CCA2 $\land$ fec+CCA2
+DDE-CCA2 $\iff$ IND-CCA1 $\land$ NM-CCA1 $\land$ pl-IND-CCA2 $\land$ pl-NM-CCA2 $\land$ le-NM-CCA2 $\land$ fec+CCA2.
 
-DDE-CCA1 $\iff$ IND-CCA1 $\land$ NM-CCA1 $\land$ pl-IND-CCA1 $\land$ pl-NM-CCA1 $\land$ le-NM-CCA1 $\land$ fec+CCA1
+DDE-CCA1 $\iff$ IND-CCA1 $\land$ NM-CCA1 $\land$ pl-IND-CCA1 $\land$ pl-NM-CCA1 $\land$ le-NM-CCA1 $\land$ fec+CCA1.
 
 ##### Instantiations
   
@@ -145,7 +146,7 @@ The game is won if the adversary can win either challenge:
 2. The game encrypts the messages at the specified redundancy yielding $y_0, y_1$
 3. Adversary produces pair of syndromes $e_{y1}, e_{y2}$ of the same weight with access to the relevant oracles and state made in 1.
 4. Game decrypts the derived messages at the specified redundancy parameters
-5. Adversary wins if the redundancy levels do not predict the residual weight provided they did not try to cheat with the syndrome weight or message length $$comp(R_0, R_1) \ne comp(W_{ex0}, W_{ex1}) \land |x_0| = |x_1| \land W_{ey0} = W_{ey1}$$ $$comp(a, b) = \begin{cases} a < b : -1 \\ a = b : 0 \\ a > b : 1 \end{cases}$$
+5. Adversary wins if the redundancy levels do not predict the residual weight, provided they did not try to cheat with the syndrome weight or message length. $$comp(R_0, R_1) \ne comp(W_{ex0}, W_{ex1}) \land |x_0| = |x_1| \land W_{ey0} = W_{ey1}$$ $$comp(a, b) = \begin{cases} a < b : -1 \\ a = b : 0 \\ a > b : 1 \end{cases}$$
 
 When applied to a CCA2 secure authenticated encryption (i.e. a scheme without partial message recovery) scheme, set $W_{ex} \gets 0$ if the message passes authentication and $W_{ex} \gets 1$ otherwise.
 
@@ -250,7 +251,8 @@ Each of the operations is fully reversible. Creating the inverse of the shuffle 
 
 ### Constant time rotation
 
-Constant time bitwise rotation within the architecture's word size is a standard operation in most cryptographic implementation libraries. It's efficient implementation on real hardware is out of scope for this paper. If constant time rotation is not supported (e.g. because the rotation distance is large), constant time rotation by a variable amount can be implemented as the sum of multiple rotations by a fixed amount and masking the fixed distance rotations according to the key. Rotating the elements of an array by a fixed amount without side channel can be accomplished with standard techniques.
+Constant time bitwise rotation within the architecture's word size is a standard operation in most cryptographic implementation libraries. Its efficient implementation on real hardware is out of scope for this paper. In some situations, constant time rotation by a variable distance may not be supported; possibly because the rotation distance is large.
+In these cases, it can be implemented as the sum of a number of fixed distance rotations by a power of two. Rotations that are not needed are masked. Rotating the elements of an array by a fixed amount without side channel can be accomplished with standard techniques.
 
 ### Correctness argument
 
@@ -264,9 +266,9 @@ The following constructions build on the previously defined grind round function
 
 #### Shuffling longer vectors
 
-While long distance rotation can be implemented using the techniques outlined in "Constant time rotation" it may be significantly more efficient to just split the data into multiple words (as appropriate for the hardware architecture) and exploit the fact that the blocks used in the round function given above do not need to be adjacent.
+While long-distance rotation can be implemented using the techniques outlined in above, it may be more efficient to just split the data into multiple chunks and mix them incrementally.
 Used like this, the round function mixes the bits from two blocks at a time; like in the two block variant rotation serves to decorrelate the relative shift of bits from the same block of origin.  
-Note that when used like this, both blocks should be rotated by a random amount, not just the first.  
+In this mode of operation, both blocks should be rotated by a random amount, not just the first.  
 Finding an optimal, deterministic mixing pattern remains an open question for now.
 
 #### Shuffling with a mask
@@ -348,7 +350,7 @@ Encryption in the random oracle model is secure despite just using a linear oper
 
 The adversary has minimal information about the input and the output of the FEC. Despite knowing the plain text and cipher text, hey know neither the input values nor the output of the FEC since those are obscured by the two XOR operations with the key stream. Nor do they know which bits in the cipher text relate to which bits in the fec output or which bits in the plain text relate to which bits in the fec input under the assumed correctness of the shuffle. Assuming that the FEC is better at correcting some error patterns than therrs, the adversary doesn't know the number of bit flips in the plain text after decryption, since the shuffle obscures the error pattern. The adversary knows just the statistical distribution of errors in the plain text.
 
-Under the random oracle model, the key stream under one nonce/key combination is independent from each other key stream. Nonce reuse is prohibited either by use of a stateful encryption oracle or by choosing nonces at random from a large space. An adversary may encrypt some plain text and submit modified versions of the associated cipher text to fully recover the key stream used for it's encryption but since key streams are independent no information about the key stream used in the challenge is gained.
+Under the random oracle model, the key stream under one nonce/key combination is independent from any other key stream. Nonce reuse is prohibited either by use of a stateful encryption oracle or by choosing nonces at random from a large space. An adversary may encrypt some plain text and submit modified versions of the associated cipher-text to fully recover the key stream used for it's encryption but since key streams are independent no information about the key stream used in the challenge is gained.
 
 An adversary may try to submit cipher texts with new nonces but since the scheme is le-NM-CCA1 secure and $w_{max}$ was chosen such that there are at least $2^128$ invalid cipher texts so the probability of gaining any information is neglible in $w_{max}$.
 
@@ -409,9 +411,9 @@ The proper security proof of the scheme will depend on the properties of the spe
 1. **Locality:** The location of an errors in the code predict the location of errors after decoding regardless of the actual value of code points or data. This relationship is assumed to be simply (errors in start/middle/end of are likely to yield errors at start/middle/end of the data). This choice is justified because locality of data usually leads to increased performance in most cpu architectures. It is also a natural choice because it is easy to think about.
 2. **Preference for sparse syndromes:** The code is assumed to be better at correcting randomly distributed errors than correcting burst errors. While there are many FECs that perform better with bursts, this choice makes sense as the FEC is paired with a shuffle which will spread apart bursts of errors. This assumption also makes sense with locality as to correct burst errors, more distant bits need to be involved in the decoding process than just the close neighbours.
 
-Under a differential attack with a small number of errors, all bit flips are likely going to be corrected. The adversary keeps adding bit flips which due to the random shuffle surmounts to flipping random bits in the code At some point in this process the syndrome is sufficiently dense that the outer round of FEC is no longer able to correct all errors.
+Under a differential attack with a small number of errors, all bit flips are likely going to be corrected. The adversary keeps adding bit flips, which due to the random shuffle surmounts to flipping random bits in the code. At some point in this process, the syndrome is sufficiently dense that the outer round of FEC is no longer able to correct all errors.
 
-In the case of a single round variant, errors are starting to appear in the plain text. Due to the outer shuffle these errors appear at random location even if the syndrome density is high enough to produce multiple errors close to each other. As the adversary keeps adding errors, some bits in the plain text will be flipped a *second time* so while the overall error density in the data keeps increasing, this is not necessarily the case when just considering a small number of bits of the output. Picture how the error vector changes during decoding: The errors in the data after decoding may jitter around in place a bit despite the average error rate within window of a few bits will just keep increasing. After shuffling the decoded bits, this jittering will no longer be localized. Instead, the relative error density may change quite drastically in some cases with errors moving location across the entire width of the ciphers block size.
+In the case of a single round variant, errors are starting to appear in the plain text. Due to the outer shuffle, these errors appear at random location even if the syndrome density is high enough to produce multiple errors close to each other. As the adversary keeps adding errors, some bits in the plain text will be flipped a *second time*; i.e., they are reset to their original value. While the overall error density in the data keeps increasing, this is not necessarily the case when just considering a small number of bits in the output. Picture how the error vector changes during decoding: The errors in the data after decoding may jitter around in place slightly, while the average error rate within a window of a few bits keeps increasing. After shuffling the decoded bits, this jitter effect will no longer be localized. Instead, the relative error density may change quite drastically; in some cases, with errors moving location across the entire width of the ciphers block size.
 
 Let us now consider the case of a second layer. In general the same process as in the first round now repeats with the following exception: While in the input to the first FEC the error density for each window of adjacent bits increases monotonically, the error density in the input to the second round occasionally decreases. Recall, that the FEC chosen is better at correcting errors if the syndrome is sparse so the changes in error density produced by the first round may actually yield a syndrome that is easier to decode for the second. This effect can outweigh the mere increase in bit flips.
 
@@ -429,7 +431,7 @@ To achieve full CCA2 security and fec-NM-CCA2 on top, the technique from "DDE co
 
 The inner XOR with the key stream is replaced with the authenticated encryption scheme; in other words crypto first and FEC on top of that. The error estimate is ignored; using it to abort early would introduce a timing side channel.
 
-For increased performance a final round of our normal FEC followed by a hard-decision algebraic code should be used to mop up any remaining errors, especially if a noise floor is present. These improve the efficiency of the FEC and are not used for security
+For increased performance, a final round of our normal FEC followed by a hard-decision algebraic code should be used to mop up any remaining errors, especially if a noise floor is present. These improve the efficiency of the FEC and are not used for security.
 
 The scheme either returns the valid plain text or yields an authentication error; this means probing this should be harder than in the partial message scenario. The number of rounds may be adjusted appropriately.
 
@@ -440,3 +442,4 @@ The scheme is CCA2 secure since it operates only the cipher text generated by a 
 The argument for fec-NM-CCA2 security is that this scheme encompasses a fec-NM-CCA2 secure scheme, namely the one from "DDE construction under CCA2 attacks".
 
 <!-- TODO: Isn't using a code that can correct a fixed number of errors fec-NM-CCA2 secure? What is the advantage of this? -->
+
