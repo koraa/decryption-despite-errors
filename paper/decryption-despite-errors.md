@@ -102,7 +102,7 @@ A dropped package will generally result in big artifacts; a handful of bit flips
 
 # Notions of security
 
-## Security Against Fuzzing: FEC Non-Malleability
+## FEC-ATK: Security Against Fuzzing
 
 Informally, a scheme is secure against fuzzing if it is hard for an adversary to thwart it's successful decoding by flipping bits. The number of bit flips is chosen as the resource limited to the adversary. This restriction on fuzzer capability is necessary because if all information is erased from the message, recovering the message would obviously be impossible. This model is also justified by real-world application as it captures the scenario of a radio transmitter in a shared medium (e.g. wifi) whose goal it is to overwhelm the communications channel with noise. It appears likely that drastically reducing the transmission rate of the radio channel would be relatively easy for the adversary, while further decreases in transmission rate would be asymptotic (i.e. there are diminishing returns). Whether this model captures reality needs to be empirically established, but this is out of scope for this paper. 
 
@@ -156,7 +156,7 @@ Again, a proper game is yet to be arrived at. For now, the following outline bas
 5. The game chooses a random syndrome of the same hamming weight, applies it two both ciphertexts and decrypts them: $$s \gets^R \{0, 1\}^{|S_0|}; x_0' = Dec(y_0 \oplus s), x_1' = Dec(y_1 \oplus s)$$
 6. The game applies each syndrome and decrypts the resulting ciphertexts: $(X', W') \gets Dec(y_1 \oplus S)$.
 7. The game randomly chooses one of the two messages $b \gets^R \{0, 1\}$.
-7. The adversary wins the game if the relation can determine the value of $b$, and they didn't attempt to cheat by outputting syndromes of different weights or of weight zero: $$R(x_b', E') = b \land (\forall s_u, s_v \in S, W(s_u) = W(s_v) \land W(s_u) > 0)$$
+8. The adversary wins the game if the relation can determine the value of $b$, and they didn't attempt to cheat by outputting syndromes of different weights or of weight zero: $$R(x_b', X') = b \land (\forall s_u, s_v \in S, W(s_u) = W(s_v) \land W(s_u) > 0)$$
 
 ### LEU-ATK: Loss estimate unforgeability
 
@@ -170,7 +170,7 @@ The loss estimate $w$ is to `PMR` what the MAC is to authenticated encryption. O
 6. The game looks up the closest original plaintext/ciphertext pair $(\hat{x},\hat{y})$ produced with the encryption oracle such that $$\forall (x_u, y_u) \in L, W(\hat{y} \oplus y') \le W(y_u \oplus y')$$
 6. The adversary wins if $$|w - W(x \oplus \hat{x})| > \Delta w$$
 
-A scheme is considered to be `LEU-ATK` secure if an adversaries probability of winning the game is negligible in $K*\Delta w$.
+A scheme is considered to be `LEU-ATK` secure if an adversaries probability of winning the game is negligible in $K \Delta w$.
 
 ### The Short-Distance Brute Force Attack
 
