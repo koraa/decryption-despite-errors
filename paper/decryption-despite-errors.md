@@ -1,6 +1,5 @@
-# Quick Reference
 
-## Standard operations
+# Quick Reference
 
   ------------------------------------------- -----------------------------------------------------------------------------------------------------
                      **$\cdot \oplus \cdot$** Exclusive or over bits or vectors of bits.  
@@ -23,22 +22,24 @@ The paper also discusses the case of standard authenticated definitions with add
                                         `PMR` "Partial Message Recovery".
                                         `SAF` "Security Against Fuzzing".
                     $Enc_{K, R}(k, n, x) = y$ The polynomial time encryption algorithm.
-                                              The shorthand notations $Enc(k, n, x)$ and $Enc(x)$ may be used.
+                                              Shorthands: $Enc(k, n, x)$, $Enc(x)$.
              $Dec_{K, R}(k, n, y') = (x', w)$ The polynomial time decryption algorithm.
-                                              The shorthand notations $Dec(k, n, y')$ and $Dec(y')$ may be used.
+                                              Shorthands: $Dec(k, n, y')$, $Dec(y')$.
                                           $K$ The security parameter.  
                                           $R$ Redundancy parameter.  
                        $w_{max} : \mathbb{Q}$ "Maximum allowed loss". 
                                               If $w > w_{max}$, $Dec$ will discard the message.
-                                              If $w_{max} = 0$, the loss estimate shall be a normal message authentication code.
+                                              If $w_{max} = 0$, the loss estimate shall be a
+                                              normal message authentication code.
                         $(k, n) : \{0, 1\}^*$ Symmetric key, nonce.  
                         $(x, y) : \{0, 1\}^*$ "Original" plaintext/ciphertext. (Without errors).
                       $(x', y') : \{0, 1\}^*$ "Derived" plaintext/ciphertext. (With errors).
-                            $s = y \oplus y'$ "The syndrome". Error vector in the ciphertext.  
-                            $r = x \oplus x'$ "The residual". Error vector after decryption in the plaintext.  
-                $W_s = W(s) = W(y \oplus y')$ "The syndrome weight". Number of bit flips in the ciphertext.  
-                $W_r = W(r) = W(x \oplus x')$ "The residual weight". Number of bit flips in the plaintext.  
-              $w : \mathbb{Q}, w \approx W_r$ "Loss estimate". Generalization of message authentication to soft decision.
+                            $s = y \oplus y'$ "The syndrome". Errors in the ciphertext.  
+                            $r = x \oplus x'$ "The residual". Error after in the plaintext.  
+                $W_s = W(s) = W(y \oplus y')$ "The syndrome weight".
+                $W_r = W(r) = W(x \oplus x')$ "The residual weight".
+              $w : \mathbb{Q}, w \approx W_r$ "Loss estimate". Generalization of message
+                                              authentication to soft decision.
   ------------------------------------------- -----------------------------------------------------------------------------------------------------
 
 ## Security Notions & Instantiations
@@ -66,7 +67,7 @@ The attack `ATK` is used throghout the paper. `ATK` $\in$ $\{$`CCA1`$,$ `CCA2`$\
 
 All physical channels are nosy, meaning that the rate of transmission errors can be reduced, but never to zero. Reducing the noise level to the degree required for most applications by increasing the reliability of the physical system is often impractical. There is a better way to deal with this: Forward Error Correction — codes designed to detect and correct errors in return for extra overhead during transmission (hence the "forward"). These codes often make some assumptions about the distribution of errors in the channel and yield reduced error correction rates when these assumptions fail to be met. <!-- E.g., convolutional --> Some codes <!--[citation needed, probably wrong, replace example]--> operate at much greater efficiencies when the errors are randomly distributed, while <!-- Reed-Solomon codes --> others are most efficient against bursts <!-- [citation needed, probably wrong]-->. Convolutional codes for instance suffer from error floor problems<!--, operating at reduced efficiency when MUMBLE MUMBLE MUMBLE [citation needed, mumbled]-->. Interleaving schemes are used to compose such codes, yielding combined that correct errors reliably in a greater range of scenarios. For instance, CDs use a complex scheme of interleaved Reed-Solomon codes <!-- codes and MUMBLE MUMBLE--> to correct errors<!--, see a description in [citation needed]-->.
 
-Cryptographic systems are tend to be layered on top of these error corrected channels <!--to protect the integrity of the data. Modern authenticated encryption schemes protect the integrity and privacy [citation needed] of the data transmitted, even against very dedicated adversaries with large resources-->. With overwhelming probability, data protected with authenticated encryption either arrives as sent by the communication partner or it does not arrive at all. Authenticated encryption guarantees authenticity, integrity and confidentiality of the data transmitted but not reliability of the transmission. In fact, AE makes denial of service attacks significantly easier because it ensures as a property that a minimum number of modifications to the ciphertext suffices to ensure the message is rejected. One bit flip, erasure, or insertion enough to have the message rejected. This is a necessity to achieve security under an adaptive chosen ciphertext attack (`CCA2`) [citation needed] — the common definition provided by most security protocols today.
+Cryptographic systems are tend to be layered on top of these error corrected channels <!--to protect the integrity of the data. Modern authenticated encryption schemes protect the integrity and privacy [citation needed] of the data transmitted, even against very dedicated adversaries with large resources-->. With overwhelming probability, data protected with authenticated encryption either arrives as sent by the communication partner or it does not arrive at all. Authenticated encryption guarantees authenticity, integrity and confidentiality of the data transmitted but not reliability of the transmission. In fact, AE makes denial of service attacks significantly easier because it ensures as a property that a minimum number of modifications to the ciphertext suffices to ensure the message is rejected. One bit flip, erasure, or insertion enough to have the message rejected. This is a necessity [@relations] to achieve security under an adaptive chosen ciphertext attack (`CCA2`) — the common definition provided by most security protocols today.
 
 The forward error correction employed on communication channels improve that situation, but being designed for specific noise profiles, finding some error pattern that has the message rejected is often easy for a determined adversary. The practical implications of that situation are limited: fuzzing of radio transmissions can usually be addressed by shutting of the fuzzer; most transmissions are secured physically, and data rates are large enough that a few packets lost do not make a big difference.
 
@@ -76,11 +77,11 @@ Still, improving the reliability of error correction in data transmissions has s
 
 ### Approximate Message Authentication
 
-There is some work on the problem of generalizing MACs to messages that are *similar* to the original. Such schemes are called *Approximate* Message Authentication Codes; see MUMBLE MUMBLE [citation needed] for a relatively recent work with good references. While a valid MAC implies with overwhelming probability that the tag was generated from the exactly same message as is being verified, AMACs are valid if the derived message $x'$ is within some distance $d : D$ of the original $x$ where D is some metric. $d$ is usually some constant; i.e. AMACs output a hard decision. For the schemes presented in this paper, more precise information about the distance between $x$ and $x'$ would be preferable. That is the scheme should return $d$ instead of just outputting a decision $D(x, x') \ge d$.
+There is some work on the problem of generalizing MACs to messages that are *similar* to the original. Such schemes are called *Approximate* Message Authentication Codes; see Tonien et al. [@amac] for a relatively recent work with good references. While a valid MAC implies with overwhelming probability that the tag was generated from the exactly same message as is being verified, AMACs are valid if the derived message $x'$ is within some distance $d : D$ of the original $x$ where D is some metric. $d$ is usually some constant; i.e. AMACs output a hard decision. For the schemes presented in this paper, more precise information about the distance between $x$ and $x'$ would be preferable. That is the scheme should return $d$ instead of just outputting a decision $D(x, x') \ge d$.
 
 ### Existing hybrid FEC and symmetric crypto schemes
 
-There has also been some work on producing hybrid ciphers integrating error correction and block ciphers; MUMBLE MUMBLE [citation needed] produced what they call a high diffusion cipher. I know of no attacks against this work, but earlier constructions employing FEC to achieve security have been proven insecure. The work referenced here is a from scratch construction of a PRP, and therefore unfortunately hard to prove secure. This is not usual in PRPs and also the case for very widely used constructions [citation needed], however since this is a fairly niche application cryptanalysis is likely to focus on one of these more widely used constructions. Confidence in this specific scheme is therefore limited.
+There has also been some work on producing hybrid ciphers integrating error correction and block ciphers; Mathur et. al. [@highdiffusion] designed what they call a high diffusion cipher; it is a from scratch construction of a PRP with FEC properties<!--, and therefore unfortunately hard to prove secure. This is not unusual in PRPs and also the case for very widely used constructions [citation needed], however-->. Since this is a fairly niche application cryptanalysis is likely to focus on one of these more widely used constructions.
 
 ## Contributions in this paper
 
@@ -105,7 +106,7 @@ A dropped package will generally result in big artifacts; a handful of bit flips
 
 Informally, a scheme is secure against fuzzing if it is hard for an adversary to thwart it's successful decoding by flipping bits. The number of bit flips is chosen as the resource limited to the adversary. This restriction on fuzzer capability is necessary because if all information is erased from the message, recovering the message would obviously be impossible. This model is also justified by real-world application as it captures the scenario of a radio transmitter in a shared medium (e.g. wifi) whose goal it is to overwhelm the communications channel with noise. It appears likely that drastically reducing the transmission rate of the radio channel would be relatively easy for the adversary, while further decreases in transmission rate would be asymptotic (i.e. there are diminishing returns). Whether this model captures reality needs to be empirically established, but this is out of scope for this paper. 
 
-A proper security definition in the game playing framework by [citation needed] is planned. For now this needs to suffice: A scheme is considered to be `FEC-ATK` secure if an adversarie's advantage in winning the game is negligible.
+A proper security definition in the game playing framework by Nowak [@gamebasedproof] is planned. For now this needs to suffice: A scheme is considered to be `FEC-ATK` secure if an adversarie's advantage in winning the game is negligible.
 
 1. Adversary produces a pair of messages $x_0, x_1$ of the same length and along with according redundancy parameters $R_0, R_1$. The adversary is given access to the relevant oracles.
 2. The game encrypts the messages at the specified redundancy level, yielding $y_0, y_1$.
@@ -133,7 +134,7 @@ A scheme that cannot provide `NM-CPA` should usually not be considered secure en
 
 ### pl-IND-ATK: indistinguishably up to proportional-loss 
 
-A proper game-based definition needs to be created still. For now, the following outline based on [citation needed] is given:
+A proper game-based definition needs to be created still. For now, the following outline based on definition arrived at by Bellare et. al. [@relations] is given:
 
 1. The adversary chooses a message $x$.
 2. Game encrypts the state $y = Enc(x)$.
@@ -146,7 +147,7 @@ The adversary also loses if they decrypted $y \oplus s_0$ or $y \oplus s_1$ usin
 
 ### pl-NM-ATK: non-malleability up to proportional-loss 
 
-Again, a proper game is yet to be arrived at. For now, the following outline based on [citation needed] is used:
+Again, a proper game is yet to be arrived at. For now, the following outline based on the definition of Bellare et. al. [@relations] is used:
 
 1. The adversary chooses a valid message space $M$.
 2. The game chooses two messages at random $x_0, x_1 \gets^R M$.
@@ -195,7 +196,7 @@ Techniques such as layering extra redundancy on top (explicitly or implicitly) a
 
 Short-Distance Brute-force imposes fundamental limitations on the security of `PMR` in CCA2 attack scenarios. CCA1 scenarios are not affected, so applications that can ensure nonces are "crossed off" and never decrypted are not affected (e.g. real time streaming with a single recipient).
 
-There are some arguments for why this limitation may be acceptable; `CCA2` does not protect against size based attacks which has real world impact [citation needed]. Applications that can deal with lossy channels in the first place might not be affected by the adversaries ability to induce bit flips, but arriving at a formal proof of security for such applications should be exceedingly hard. Finally the mitigations might not get as to NP complexity but can still drastically improve the real world security of any system with `PMR`; ultimately this just means that a lot of extra caution is needed when using `PMR` in such settings.
+There are some arguments for why this limitation may be acceptable; `CCA2` does not protect against size based attacks which has real world impact <!-- [citation needed] -->. Applications that can deal with lossy channels in the first place might not be affected by the adversaries ability to induce bit flips, but arriving at a formal proof of security for such applications should be exceedingly hard. Finally the mitigations might not get as to NP complexity but can still drastically improve the real world security of any system with `PMR`; ultimately this just means that a lot of extra caution is needed when using `PMR` in such settings.
 
 # Constructions
 
@@ -221,7 +222,7 @@ All constructions require instantiation of the random oracle with a random numbe
 
 In the specifications below `shuffle(rng, data)` and `unshuffle(rng, data)` denote two stateless, deterministic, polynomial time algorithms such that `unshuffle` is the inverse of `shuffle` provided that the state in both random number generators is the same.
 
-An efficient, cryptographic, bitwise shuffle is required to instantiate the scheme. Standard shuffling methods such as the fisher-yates [citation needed] shuffle are not suitable as these algorithms use key dependent memory accesses, thereby introducing a timing side channel. Cryptographic shuffles such as the thorp-shuffle [citation needed] or the swap-or-not shuffle [citation needed] are slow to [is this actually the case?] implement.
+An efficient, cryptographic, bitwise shuffle is required to instantiate the scheme. Standard shuffling methods such as the fisher-yates <!-- [citation needed] --> shuffle are not suitable as these algorithms use key dependent memory accesses, thereby introducing a timing side channel. Cryptographic shuffles such as the thorp-shuffle [@thorp] or the swap-or-not shuffle [@swapornot] are slow <!--to [is this actually the case?] implement-->.
 
 The grind shuffle is a cryptographic shuffle mixing two blocks of data using only rotate and standard bitwise operations. It needs to be seeded with a random number generator (random oracle). The grind shuffle is conjectured to asymptotically approach a truly uniform permutation on location with an increasing number of rounds.
 
@@ -312,7 +313,7 @@ Encryption in the random oracle model provides a sound basis to build upon. The 
 
 The cipher design outlined in this section aims to achieve simplicity and provable security. Specifically, the cipher should be implemented as a reduction to a common PRF (e.g., blake2, chacha, keccak) instead of a from scratch construction to achieve provable. Security in the following games is conjectured `IND-CCA1`, `pl-ND-CCA1`, `pl-IND-CCA1`, `FEC-CCA1` and `LEU-CCA1`. For this security level to be realistic, the implementation must reliably prevent the reuse of nonces; this is possible in some streaming scenarios.
 
-`IND-CPA` can be achieved by using unauthenticated encryption in the random oracle model [citation needed]. This scheme provides 1:1 malleability. We could perform FEC on ciphertext or plaintext. This scheme also gives the adversary the ability to induce arbitrary error patterns in the plaintext. This is an extremely efficient construction in terms of both ciphertext size and performance, but is not secure. Still, it provides a good basis to build the full scheme on.
+`IND-CPA` can be achieved by using unauthenticated encryption in the random oracle model [@randomoracles]. This scheme provides 1:1 malleability. We could perform FEC on ciphertext or plaintext. This scheme also gives the adversary the ability to induce arbitrary error patterns in the plaintext. This is an extremely efficient construction in terms of both ciphertext size and performance, but is not secure. Still, it provides a good basis to build the full scheme on.
 
 ```python
 def encrypt(&rng, plaintext):
@@ -450,3 +451,5 @@ The scheme is CCA2 secure since it operates only on the ciphertext generated by 
 <!-- TODO: Isn't using a code that can correct a fixed number of errors saf-NM-CCA2 secure? What is the advantage of this? -->
 
 <!-- # Future Direction -->
+
+# References
