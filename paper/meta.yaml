@@ -1,0 +1,36 @@
+title: Decryption Despite Errors
+subtitle: |
+  Achieving security against fuzzing and improving
+  bandwidth efficiency by combining FEC and symmetric
+  encryption.
+author:
+  - Karolin Varner karo@cupdev.net
+abstract: |
+  This paper introduces the notion of decryption despite errors: ciphers with forward error correction properties that provide specific security properties in relation to noise or adversarial error in the ciphertext. The two properties are security against fuzzing and partial message recovery. The latter refers to a ciphers ability to decrypt ciphertexts even if the noise level is too high to recover the original message.
+  Definitions of and fundamental limits of security under these constraints are presented. Security against fuzzing is formalized. PMR is incompatible with CCA2 security, but can still provide security: Informally, it should be infeasible for an attacker to do any better than raising the (random) noise level in the plain text in the attempt to forge messages. Multiple PMR security notions are formalized; the most interesting one states, that asymptotic infeasibility of distinguishing the decryption of two challenger-chosen error-patterns (bit flips) with the same number of errors must be demonstrated for security.
+
+  The outline of a construction that operates as a mode for a pseudo random function is presented; the construction is based on multiple rounds of an error correcting code and interleaver, both randomized using the PRF generated key stream.
+
+  A novel, fast, bitwise shuffle for cryptographic purposes is introduced; the algorithm transforms a random oracle into a shuffle by splitting the input into blocks. Blocks are mixed with `swap_by_mask` and a random mask; the relative position of bits are decorrelated using bitwise rotation.
+
+  This paper is currently a draft and likely to contain a number of errors. MUMBLE MUMBLE indicates references and content to be filled in. Proofs of security and correctness are to be done. For now, the constructions have informal arguments of security/correctness.
+
+keywords:
+  - Symmetric Cryptography
+  - Code Based Cryptography
+  - Security Notions
+  - Symmetric Constructions
+lang: en
+
+titlepage: true
+#toc: false
+#toc-depth: 2
+numbersections: true
+mathfont: GFSNeohellenicMath.otf
+colorlinks: true
+fontfamily: arev
+geometry:
+  - top=30mm
+  - left=30mm
+  - right=30mm
+  - heightrounded
