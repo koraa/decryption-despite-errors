@@ -6,6 +6,10 @@ encryption.
 
 See the [paper](paper/decryption-despite-errors.pdf).
 
+# Presentations
+
+- [2021-06-26 CB-Crypto workshop on code based cryptography.](https://youtu.be/3D1V0C0eTIc). Slides: [presentations/2021-06-21-cbcrypto.pdf](./presentations/2021-06-21-cbcrypto.pdf):
+
 # Copying
 
 Copyright © 2021 by Karolin Varner.
