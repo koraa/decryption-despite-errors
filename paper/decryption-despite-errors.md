@@ -5,9 +5,13 @@
                      **$\cdot \oplus \cdot$** Exclusive or over bits or vectors of bits.  
                                    $W(\cdot)$ The hamming weight (number of bits set to one in a vector of bits).  
                       $W(\cdot \oplus \cdot)$ The hamming distance.  
-                                    $|\cdot|$ Size of a vector.
                                 $mode(\cdot)$ Mode of some statistical distribution.
+                                 $|v|, v : V$ Size of a vector iff v is a vector.
+                                        $|n|$ Absolute value of a number
+                                    $amag(a)$ "Absolute magnitude".
   ------------------------------------------- -----------------------------------------------------------------------------------------------------
+
+$$amag(a) = sgn(a) \; e^{lg(|a|)} = \begin{cases} |a| \ge 1 : a \\ |a| < 1 : \frac{1}{a} \end{cases}$$
 
 ## Decryption Despite Errors
 
@@ -108,11 +112,14 @@ Informally, a scheme is secure against fuzzing if it is hard for an adversary to
 
 A proper security definition in the game playing framework by Nowak [@gamebasedproof] is planned. For now this needs to suffice: A scheme is considered to be `FEC-ATK` secure if an adversarie's advantage in winning the game is negligible.
 
-1. Adversary produces a pair of messages $x_0, x_1$ of the same length and along with according redundancy parameters $R_0, R_1$. The adversary is given access to the relevant oracles.
-2. The game encrypts the messages at the specified redundancy level, yielding $y_0, y_1$.
-3. Adversary produces a pair of syndromes $s_1, s_2$ of the same weight (but not the same length) with access to the relevant oracles and state made in 1.
-4. Game decrypts the derived messages at the specified redundancy parameters.
-5. Adversary wins if the redundancy levels do not predict the residual weight, provided they did not try to cheat with the syndrome weight or message length. $$comp(R_0, R_1) \ne comp(W_{r_0}, W_{r_1}) \land |x_0| = |x_1| \land W_{s_0} = W_{s_1}$$ $$comp(a, b) = \begin{cases} a < b : -1 \\ a = b : 0 \\ a > b : 1 \end{cases}$$
+1. The game takes the security parameter $K$ and a parameter $\Delta$.
+2. Adversary produces a pair of messages $x_0, x_1$ of the same length and along with according redundancy parameters $R_0, R_1$. The adversary is given access to the relevant oracles.
+3. The game encrypts the messages at the specified redundancy level, yielding $y_0, y_1$.
+4. Adversary produces a pair of syndromes $s_1, s_2$ of the same weight (but not the same length) with access to the relevant oracles and state made in 1.
+5. Game decrypts the derived messages at the specified redundancy parameters.
+6. Adversary wins if the redundancy levels do not predict the residual weight, provided they did not try to cheat with the syndrome weight or message length. $$amag(\frac{R_0  W_{r_0}}{R_1 W_{r_1}}) \le \Delta \land |x_0| = |x_1| \land W_{s_0} = W_{s_1}$$
+
+A scheme is considered to be `FEC-ATK` secure if an adversaries probability of winning the game is negligible in $K \Delta$.
 
 When applied to a `CCA2` secure authenticated encryption (i.e., a scheme without partial message recovery) scheme, set $d \gets 0$ if the message passes authentication and $d \gets 1$ otherwise.
 
@@ -164,15 +171,18 @@ Again, a proper game is yet to be arrived at. For now, the following outline bas
 
 The loss estimate $d$ is to `PMR` what the MAC is to authenticated encryption. Outline of the game:
 
-1. The game takes the security parameter $K$ and a parameter $\Delta d : \mathbb{Q}$; the encryption oracle keeps track of all encryptions in the encryption log $L$.
-2. The adversary outputs a message $x$.
-3. The game encrypts the message $y \gets Enc(x)$.
-4. The adversary is given $y$ and outputs some derived ciphertext $y'$ with access to the oracles, and the state it produced in 2.
-5. The game decrypts the derived ciphertext $(x', d) = Dec(y')$.
-6. The game looks up the closest original plaintext/ciphertext pair $(\hat{x},\hat{y})$ produced with the encryption oracle such that $$\forall (x_u, y_u) \in L, W(\hat{y} \oplus y') \le W(y_u \oplus y')$$
-6. The adversary wins if $$|d - W(x \oplus \hat{x})| > \Delta d$$
+<!-- TODO: Handle nonces more actively -->
 
-A scheme is considered to be `LEU-ATK` secure if an adversaries probability of winning the game is negligible in $K \Delta d$.
+1. The game takes the security parameter $K$ and a parameter $\Delta d : \mathbb{Q}$
+2. The encryption oracle keeps track of all encryptions in the encryption log $L$. Each encryption is assigned a unique id $u \gets^R \{0, 1\}^K$. The oracle outputs $(u, n, y)$.
+3. The adversary is given $y$ and outputs some derived ciphertext $(u, n, y')$ with access to the oracles.
+4. The game decrypts the derived ciphertext $(x', d) = Dec(k, n, y')$.
+6. The game uses the uid to look up the *original* plaintext and nonce $(u, n^*, x^*) \in L$ or assigns the bottom element to both if the nonce cannot be found.
+6. The adversary wins if $$\begin{cases} n^* \ne n : d \le d_{max} \\ n* = n : |d - W(x \oplus x^*)| > \Delta d\end{cases}$$
+
+A scheme is considered to be `LEU-ATK` secure if an adversaries probability of winning the game is negligible in $K \Delta d$. The construction using the uid is a bit complex; you may wonder why not simply use the nonce as an id? Why look up the *original* plain text at all. The original plain text is needed because there needs to be something to compare the distance estimate to. Using the uid instead of the nonce to look up the "originals" lets the adversary choose a somewhat stronger attack model: When they're not starting from an existing encryption, it suffices for them to produce any message that successfully decrypts; even when targeting some encryption under an existing nonce whose encryption was be probed adaptively during step 3.
+
+<!-- TODO: How does this relate to PL{NM,IND}-ATK? -->
 
 ### The Short-Distance Brute Force Attack
 
