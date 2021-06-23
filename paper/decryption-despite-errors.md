@@ -49,15 +49,15 @@ The paper also discusses the case of standard authenticated definitions with add
 The attack `ATK` is used throghout the paper. `ATK` $\in$ $\{$`CCA1`$,$ `CCA2`$\}$.
 
 `AESAF` $\iff$ `IND-CCA2` $\land$ `FEC-CCA2`.  
-`DDE-ATK` $\iff$ `IND-CCA1` $\land$ `NM-CCA1` $\land$ `pl-IND-ATK` $\land$ `pl-NM-ATK` $\land$ `LEU-ATK` $\land$ `FEC-ATK`.
+`DDE-ATK` $\iff$ `IND-CCA1` $\land$ `NM-CCA1` $\land$ `INDPL-ATK` $\land$ `NMPL-ATK` $\land$ `LEU-ATK` $\land$ `FEC-ATK`.
 
   ------------------------------------------- -----------------------------------------------------------------------------------------------------
                                       `AESAF` "Authenticated encryption with security against fuzzing".
                                     `DDE-ATK` "Decryption despite errors".
                                     `FEC-ATK` "Forward error correction non malleability".
                                               Security against fuzzing as a stand alone notion.
-                                  `pl-NM-ATK` "Non-malleability up to proportional loss".
-                                 `pl-IND-ATK` "Decryption-indistinguishably up to proportional loss".
+                                   `NMPL-ATK` "Non-malleability up to proportional loss".
+                                  `INDPL-ATK` "Decryption-indistinguishably up to proportional loss".
                                     `LEU-ATK` "Loss-estimate unforgability".
   ------------------------------------------- -----------------------------------------------------------------------------------------------------
 
@@ -126,13 +126,15 @@ Since the scheme returns an error estimate instead of a hard decision, a new unf
 
 <!-- Todo: Make formula -->
 
-### Incompatibility with NM-CPA
+### Incompatibility with NM-CPA, NM-ATK, IND-CCA2
 
 Partial Message Recovery is incompatible with `NM-CPA`, `NM-CCA1` and `NM-CCA2`. Since `IND-CCA2` $\iff$ `NM-CCA2`, `PMR` is also incompatible with `IND-CCA2`. To brake non-malleability games an adversary can simply flip a single bit in the cipher-text and then construct a relation from the hamming distance.
 
 A scheme that cannot provide `NM-CPA` should usually not be considered secure enough for any real-world application beyond the construction of other, more secure, schemes. Let me point out though that the usual security definitions don't capture the properties of partial message recovery very well. PMR can provide a decent level of security, even under adaptive chosen ciphertext attack, if the security definitions are made aware of the malleability properties. This may seem like a potentially dangerous move, but there is some precedence: Ciphers generally do not hide the size of the message, so the usual security definitions were defined to not include attacks based on the size of the message. Analogously to the restriction of standard security notions to messages of the same length, the next sections will define further weakened security notions applicable to `PMR`.
 
-### pl-IND-ATK: indistinguishably up to proportional-loss 
+The phrase "CCA2-Security" is sometimes used colloquially; this usually refers to the security notions `IND-CCA2` $iff$ `NM-CCA2`; the game (non-malleability versus indistinguishably) is often left out because both games are equivalent at in the context of `CCA2` attacks. In the context of this paper, it *is* important to make a distinction between game and attack as this paper introduces new games for which a secure constructions under `CCA2` attacks can be derived. The notions `INDPL-ATK` and `NMPL-ATK` together are designed to achieve `{IND,NM}-CCA2` security **up to proportional** loss which models what can be achieved under `DDE`. They are still *quite* strong in my view, but this is a subjective estimate. They are definitely somewhat *weaker* than full `{IND,NM}-CCA2`.
+
+### INDPL-ATK: indistinguishably up to proportional-loss 
 
 A proper game-based definition needs to be created still. For now, the following outline based on definition arrived at by Bellare et. al. [@relations] is given:
 
@@ -145,7 +147,7 @@ A proper game-based definition needs to be created still. For now, the following
 
 The adversary also loses if they decrypted $y \oplus s_0$ or $y \oplus s_1$ using the oracle. Note that this definition is not the usual *ciphertext indistinguishability*; it is indistinguishibility of a derived plain text
 
-### pl-NM-ATK: non-malleability up to proportional-loss 
+### NMPL-ATK: non-malleability up to proportional-loss 
 
 Again, a proper game is yet to be arrived at. For now, the following outline based on the definition of Bellare et. al. [@relations] is used:
 
@@ -311,7 +313,7 @@ Use padding to achieve the required block size. Use shuffling with mask to shuff
 
 Encryption in the random oracle model provides a sound basis to build upon. The FEC is sandwiched in shuffle and encryption operations to mask the location of bits. All operations are linear and use entropy from a random oracle, so a security proof should be achievable.
 
-The cipher design outlined in this section aims to achieve simplicity and provable security. Specifically, the cipher should be implemented as a reduction to a common PRF (e.g., blake2, chacha, keccak) instead of a from scratch construction to achieve provable. Security in the following games is conjectured `IND-CCA1`, `pl-ND-CCA1`, `pl-IND-CCA1`, `FEC-CCA1` and `LEU-CCA1`. For this security level to be realistic, the implementation must reliably prevent the reuse of nonces; this is possible in some streaming scenarios.
+The cipher design outlined in this section aims to achieve simplicity and provable security. Specifically, the cipher should be implemented as a reduction to a common PRF (e.g., blake2, chacha, keccak) instead of a from scratch construction to achieve provable. Security in the following games is conjectured `IND-CCA1`, `pl-ND-CCA1`, `INDPL-CCA1`, `FEC-CCA1` and `LEU-CCA1`. For this security level to be realistic, the implementation must reliably prevent the reuse of nonces; this is possible in some streaming scenarios.
 
 `IND-CPA` can be achieved by using unauthenticated encryption in the random oracle model [@randomoracles]. This scheme provides 1:1 malleability. We could perform FEC on ciphertext or plaintext. This scheme also gives the adversary the ability to induce arbitrary error patterns in the plaintext. This is an extremely efficient construction in terms of both ciphertext size and performance, but is not secure. Still, it provides a good basis to build the full scheme on.
 
@@ -364,7 +366,7 @@ An adversary may try to submit cipher texts chosen by the adversary without star
 
 ## `dde-cca2-cipher-nopunct`: A DDE-CCA2-secure construction
 
-Achieving CCA2 security necessitates the use of techniques from permutation-based encryption, as recovering even some bits from the key stream may enable an attack. The construction is similar to a substitution-permutation network. It uses shuffles and FEC instead of S- and P-boxes. The scheme is conjectured to provide `IND-CCA1`, `pl-IND-CCA2`, `pl-ND-CCA2`, `LEU-CCA2` and `FEC-CCA2` security.
+Achieving CCA2 security necessitates the use of techniques from permutation-based encryption, as recovering even some bits from the key stream may enable an attack. The construction is similar to a substitution-permutation network. It uses shuffles and FEC instead of S- and P-boxes. The scheme is conjectured to provide `IND-CCA1`, `INDPL-CCA2`, `pl-ND-CCA2`, `LEU-CCA2` and `FEC-CCA2` security.
 
 The scheme from the previous section is insecure under adaptive chosen ciphertext attacks; just determining part of the inner and outer shuffle would suffice to enhance the adversary's ability to produce specific error patterns. This structure can be probed using a differential attack. To achieve CCA2 security, it is thus necessary to mask the key stream even under differential attacks.
 
