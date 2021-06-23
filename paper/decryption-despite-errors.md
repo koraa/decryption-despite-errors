@@ -11,9 +11,9 @@
 
 ## Decryption Despite Errors
 
-Schemes are said to have security against fuzzing (`SAF`) if they can be shown to support `FEC-ATK` security. Schemes are said to support Partial Message Recovery (`PMR`) if they can securely decrypt when `w > 0` (i.e. there will be errors in the decrypted plain text). `proportional-loss-` and `loss-estimate-` security notions apply. Decryption Despite Errors (`DDE`) refers to schemes that support both `SAF` and `PMR`; the associated security notion is `DDE-ATK`. This paper omits the study of scheme that supports `PMR` but not `SAF`.
+Schemes are said to have security against fuzzing (`SAF`) if they can be shown to support `FEC-ATK` security. Schemes are said to support Partial Message Recovery (`PMR`) if they can securely decrypt when `d > 0` (i.e. there will be errors in the decrypted plain text). `proportional-loss-` and `loss-estimate-` security notions apply. Decryption Despite Errors (`DDE`) refers to schemes that support both `SAF` and `PMR`; the associated security notion is `DDE-ATK`. This paper omits the study of scheme that supports `PMR` but not `SAF`.
 
-The definition of a symmetric cipher has been adapted for this paper to be applicable to partial message recovery. A redundancy parameter is added; the scheme takes the ciphertext or a cipher-text with errors and returns the original plaintext or a related plaintext as well as an error estimate. The error estimate $w$ replaces the usual construction in authenticated encryption, where a message or the bottom element is returned. The message is rejected if $w > w_{max}$.
+The definition of a symmetric cipher has been adapted for this paper to be applicable to partial message recovery. A redundancy parameter is added; the scheme takes the ciphertext or a cipher-text with errors and returns the original plaintext or a related plaintext as well as an error estimate. The error estimate $d$ replaces the usual construction in authenticated encryption, where a message or the bottom element is returned. The message is rejected if $d > d_{max}$.
 
 The paper also discusses the case of standard authenticated definitions with additional security against fuzzing. In this case, standard definitions are applicable.
 
@@ -23,13 +23,13 @@ The paper also discusses the case of standard authenticated definitions with add
                                         `SAF` "Security Against Fuzzing".
                     $Enc_{K, R}(k, n, x) = y$ The polynomial time encryption algorithm.
                                               Shorthands: $Enc(k, n, x)$, $Enc(x)$.
-             $Dec_{K, R}(k, n, y') = (x', w)$ The polynomial time decryption algorithm.
+             $Dec_{K, R}(k, n, y') = (x', d)$ The polynomial time decryption algorithm.
                                               Shorthands: $Dec(k, n, y')$, $Dec(y')$.
                                           $K$ The security parameter.  
                                           $R$ Redundancy parameter.  
-                       $w_{max} : \mathbb{Q}$ "Maximum allowed loss". 
-                                              If $w > w_{max}$, $Dec$ will discard the message.
-                                              If $w_{max} = 0$, the loss estimate shall be a
+                       $d_{max} : \mathbb{Q}$ "Maximum allowed loss". 
+                                              If $d > d_{max}$, $Dec$ will discard the message.
+                                              If $d_{max} = 0$, the loss estimate shall be a
                                               normal message authentication code.
                         $(k, n) : \{0, 1\}^*$ Symmetric key, nonce.  
                         $(x, y) : \{0, 1\}^*$ "Original" plaintext/ciphertext. (Without errors).
@@ -38,7 +38,7 @@ The paper also discusses the case of standard authenticated definitions with add
                             $r = x \oplus x'$ "The residual". Error after in the plaintext.  
                 $W_s = W(s) = W(y \oplus y')$ "The syndrome weight".
                 $W_r = W(r) = W(x \oplus x')$ "The residual weight".
-              $w : \mathbb{Q}, w \approx W_r$ "Loss estimate". Generalization of message
+              $d : \mathbb{Q}, d \approx W_r$ "Loss estimate". Generalization of message
                                               authentication to soft decision.
   ------------------------------------------- -----------------------------------------------------------------------------------------------------
 
@@ -114,7 +114,7 @@ A proper security definition in the game playing framework by Nowak [@gamebasedp
 4. Game decrypts the derived messages at the specified redundancy parameters.
 5. Adversary wins if the redundancy levels do not predict the residual weight, provided they did not try to cheat with the syndrome weight or message length. $$comp(R_0, R_1) \ne comp(W_{r_0}, W_{r_1}) \land |x_0| = |x_1| \land W_{s_0} = W_{s_1}$$ $$comp(a, b) = \begin{cases} a < b : -1 \\ a = b : 0 \\ a > b : 1 \end{cases}$$
 
-When applied to a `CCA2` secure authenticated encryption (i.e., a scheme without partial message recovery) scheme, set $w \gets 0$ if the message passes authentication and $w \gets 1$ otherwise.
+When applied to a `CCA2` secure authenticated encryption (i.e., a scheme without partial message recovery) scheme, set $d \gets 0$ if the message passes authentication and $d \gets 1$ otherwise.
 
 ## Partial Message Recovery
 
@@ -139,7 +139,7 @@ A proper game-based definition needs to be created still. For now, the following
 1. The adversary chooses a message $x$.
 2. Game encrypts the state $y = Enc(x)$.
 3. Adversary chooses two syndromes of the same hamming weight $s_0, s_1$ with access to the usual oracles and the state produced in 1.
-4. Game randomly applies and decrypts one of the syndromes: $$b = \gets^R \{0, 1\}; (x', w) = Dec(y \oplus s_b)$$
+4. Game randomly applies and decrypts one of the syndromes: $$b = \gets^R \{0, 1\}; (x', d) = Dec(y \oplus s_b)$$
 5. Adversary outputs a guess of $b$ given $x'$, the oracles, and the state from 3.
 6. Challenger wins if their guess is right, and they didn't cheat with syndrome weight: $$b = b_g \land W_{s_0} = W_{s_1}$$
 
@@ -154,23 +154,23 @@ Again, a proper game is yet to be arrived at. For now, the following outline bas
 3. The game encrypts both $y_0 \gets Enc(x_0); y_1 \gets Enc(x_1)$.
 4. The adversary outputs a relation and a vector of syndromes of the same hamming weight $(R, S)$ given $y_1$, oracles, and the state from 1.
 5. The game chooses a random syndrome of the same hamming weight, applies it two both ciphertexts and decrypts them: $$s \gets^R \{0, 1\}^{|S_0|}; x_0' = Dec(y_0 \oplus s), x_1' = Dec(y_1 \oplus s)$$
-6. The game applies each syndrome and decrypts the resulting ciphertexts: $(X', W') \gets Dec(y_1 \oplus S)$.
+6. The game applies each syndrome and decrypts the resulting ciphertexts: $(X', D') \gets Dec(y_1 \oplus S)$.
 7. The game randomly chooses one of the two messages $b \gets^R \{0, 1\}$.
 8. The adversary wins the game if the relation can determine the value of $b$, and they didn't attempt to cheat by outputting syndromes of different weights or of weight zero: $$R(x_b', X') = b \land (\forall s_u, s_v \in S, W(s_u) = W(s_v) \land W(s_u) > 0)$$
 
 ### LEU-ATK: Loss estimate unforgeability
 
-The loss estimate $w$ is to `PMR` what the MAC is to authenticated encryption. Outline of the game:
+The loss estimate $d$ is to `PMR` what the MAC is to authenticated encryption. Outline of the game:
 
-1. The game takes the security parameter $K$ and a parameter $\Delta w : \mathbb{Q}$; the encryption oracle keeps track of all encryptions in the encryption log $L$.
+1. The game takes the security parameter $K$ and a parameter $\Delta d : \mathbb{Q}$; the encryption oracle keeps track of all encryptions in the encryption log $L$.
 2. The adversary outputs a message $x$.
 3. The game encrypts the message $y \gets Enc(x)$.
 4. The adversary is given $y$ and outputs some derived ciphertext $y'$ with access to the oracles, and the state it produced in 2.
-5. The game decrypts the derived ciphertext $(x', w) = Dec(y')$.
+5. The game decrypts the derived ciphertext $(x', d) = Dec(y')$.
 6. The game looks up the closest original plaintext/ciphertext pair $(\hat{x},\hat{y})$ produced with the encryption oracle such that $$\forall (x_u, y_u) \in L, W(\hat{y} \oplus y') \le W(y_u \oplus y')$$
-6. The adversary wins if $$|w - W(x \oplus \hat{x})| > \Delta w$$
+6. The adversary wins if $$|d - W(x \oplus \hat{x})| > \Delta d$$
 
-A scheme is considered to be `LEU-ATK` secure if an adversaries probability of winning the game is negligible in $K \Delta w$.
+A scheme is considered to be `LEU-ATK` secure if an adversaries probability of winning the game is negligible in $K \Delta d$.
 
 ### The Short-Distance Brute Force Attack
 
@@ -341,16 +341,16 @@ def decrypt(rng, ciphertext):
   x = plaintext
   x = x ^ rng.reverse().getBytes(len(x))
   x = unshuffle(rng, x) # Inverse of shuffle
-  (x, w) = unfec(x) # Inverse of FEC
+  (x, d) = unfec(x) # Inverse of FEC
   x = unshuffle(rng, x)
   x = x ^ rng.getBytes(len(x))
-  if w > w_max:
+  if d > d_max:
     return None
   else
-    return (x, w) 
+    return (x, d) 
 ```
 
-$w_{max}$ needs to be chosen so there is a large number of invalid messages per valid message.
+$d_{max}$ needs to be chosen so there is a large number of invalid messages per valid message.
 
 ### Security argument
 
@@ -360,7 +360,7 @@ The adversary has minimal information about the input and the output of the FEC.
 
 Under the random oracle model, the key stream for one nonce/key combination is independent of any other key stream. Nonce reuse is prohibited either by use of a stateful encryption oracle or by choosing nonces at random from a large space. The recipient needs to make sure no nonce is used for decryption more than once. Assuming an adversary can use a known-plaintext attack to fully recover the key stream used for one encryption, no information about the key stream used for other messages is gained.
 
-An adversary may try to submit cipher texts chosen by the adversary without starting with a ciphertext generated by the encryption oracle; the recipient refuses such probing attempts since the scheme is `LEU-CCA1`-secure. Since $w_{max}$ is chosen such that there are many invalid ciphertexts, the probability of gaining any information using this method is negligible.
+An adversary may try to submit cipher texts chosen by the adversary without starting with a ciphertext generated by the encryption oracle; the recipient refuses such probing attempts since the scheme is `LEU-CCA1`-secure. Since $d_{max}$ is chosen such that there are many invalid ciphertexts, the probability of gaining any information using this method is negligible.
 
 ## `dde-cca2-cipher-nopunct`: A DDE-CCA2-secure construction
 
@@ -391,13 +391,13 @@ def decrypt(rng, ciphertext):
   x = x ^ rng.reverse().getBytes(len(x))
   for _ in roundCount:
     x = unshuffle(rng, x) # Inverse of shuffle
-    (x, w) = unfec(x) # Inverse of FEC
+    (x, d) = unfec(x) # Inverse of FEC
   x = unshuffle(rng, x)
   x = x ^ rng.getBytes(len(x))
-  if w > w_max:
+  if d > d_max:
     return None
   else
-    return (x, w) 
+    return (x, d) 
 ```
 
 ### Security argument
